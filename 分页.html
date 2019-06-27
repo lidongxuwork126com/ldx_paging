@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<!-- 页码相关文字部分, 可以设置样式, 也可以不要 -->
+<span id="all_num_span"></span>
+<span id="page_span"></span>
+<!-- 页码按钮部分 -->
+<div>
+    <button id="homeBtn" onclick="homeClick(event)" disabled="disabled">首页</button>
+    <button id="lastBtn" onclick="lastPageClick(event)" disabled="disabled">上一页</button>
+    <button id="leftPo" onclick="leftPoint(event)" disabled="disabled">...</button>
+    <div onclick="pageClick(event)" id="pageDiv" style="display: inline-block;">
+
+    </div>
+    <button id="rightPo" onclick="rightPoint(event)">...</button>
+    <button id="nextBtn" onclick="nextPageClick(event)">下一页</button>
+    <button id="lastHome" onclick="lastHomeClick(event)">尾页</button>
+</div>
+
+<script>
+    // 传入数据总条数, 每页显示的数据条数, 按钮个数
+    abc(333, 11, 7);
+
+    // 自己实现这个方法(点击效果逻辑代码)
+    function pageNumButtonClick(ev) {
+        // console.log(ev);
+    }
+
+    var homeClick;
+    var pageClick;
+    var rightPoint;
+    var nextPageClick;
+    var lastHomeClick;
+    var leftPoint;
+    var lastPageClick;
+
+    // 总共数据条数, 每页显示多少条数
+    function abc(allNum, meiye, btnNumber) {
+        var pageDiv = document.getElementById("pageDiv"); // 放置按钮的容器
+        var leftPo = document.getElementById("leftPo");
+        var homeBtn = document.getElementById("homeBtn");
+        var lastBtn = document.getElementById("lastBtn");
+        var rightPo = document.getElementById("rightPo");
+        var nextBtn = document.getElementById("nextBtn");
+        var lastHome = document.getElementById("lastHome");
+        var all_num_span = document.getElementById("all_num_span");
+        var page_span = document.getElementById("page_span");
+
+
+        // 源代码以下, 尽量不要修改
+        var nowPage = 1; // 记录当前页码数
+        var allPage = Math.ceil(allNum / meiye); // 共多少页
+        // 文字赋值部分
+        all_num_span.innerHTML = "总共有:" + allNum + "条数据";
+        page_span.innerHTML = "共" + allPage + "页";
+
+        // 新增按钮
+        function createBtn() {
+            for (let i = 0; i < btnNumber; i++){
+                let btn = document.createElement("button");
+                i === 0 && (btn.style.backgroundColor = "red");
+                btn.innerHTML = i + 1;
+                document.getElementById("pageDiv").appendChild(btn);
+            }
+        }
+        createBtn();
+
+
+        // 判断首页部分模块是否可以交互
+        function checkHomePage() {
+            leftPo.disabled = nowPage < (btnNumber + 1);   // 上一组按钮
+            lastBtn.disabled = nowPage == 1; // 上一页按钮
+            homeBtn.disabled = nowPage == 1; // 首页按钮
+        }
+        checkHomePage();
+
+        // 判断尾页部分模块是否可以交互
+        function checkLastHome() {
+            // 46 47 48 49 50
+            // 51 52 53 54 55 10.2 11
+            // 56 57 58 59 60 11.2 12    Math.ceil(allNum / 5) 等于12
+            // 1 2 3 4 5
+            // 6 7            33条 / 5 6.6
+            // allPage / meiye  共几组  7页2组
+            // console.log(Math.ceil(allPage / meiye), Math.ceil(nowPage / meiye));
+            rightPo.disabled = Math.ceil(allPage / btnNumber) == Math.ceil(nowPage / btnNumber);    // 下一组按钮
+            nextBtn.disabled = (nowPage == allPage); // 下一页按钮
+            lastHome.disabled = nowPage == allPage;  // 尾页按钮
+        }
+        checkLastHome();
+
+
+        // 首页按钮点击事件
+        homeClick = function (ev) {
+            ev.stopPropagation();
+            nowPage = 1;
+            changeLayout();
+            lightRed();
+            checkHomePage();
+            checkLastHome();
+        }
+        // 上一页的点击事件
+        lastPageClick = function (ev) {
+            ev.stopPropagation();
+            if ((nowPage - 1) % btnNumber === 0) { // 如果正好是5的倍数, 应该翻页了
+                --nowPage;
+                changeLayout();
+                lightRed("last"); // 最后一个按钮变红
+            } else {
+                nowPage--;
+                lightRed();
+            }
+            checkHomePage();
+            checkLastHome();
+        }
+        // 上一组的点击事件
+        leftPoint = function (ev) {
+            ev.stopPropagation();
+            var childArr = pageDiv.children;
+            // 把nowPage设置为第一组第一个按钮
+            nowPage = nowPage - btnNumber;
+            changeLayout();
+            checkHomePage();
+            checkLastHome();
+            lightRed();
+        }
+
+
+        // 页码的点击事件
+        pageClick = function (ev) {
+            // ev.stopPropagation(); // 阻止事件冒泡
+            if (ev.target.nodeName == "BUTTON") {
+                nowPage = Number(ev.target.innerHTML);
+                checkHomePage();
+                checkLastHome();
+                lightRed();
+
+                // 调用预留接口
+                pageNumButtonClick(ev);
+            }
+        }
+
+
+        // 下一组功能按钮
+        rightPoint = function (ev) {
+            ev.stopPropagation();
+            var childArr = pageDiv.children;
+            // 把nowPage设置为第一组第一个按钮
+            nowPage = nowPage + btnNumber;
+            if (nowPage > allPage) {
+                nowPage = allPage;
+            }
+            // 先记录值, 然后改页面
+            changeLayout();
+            checkHomePage();
+            checkLastHome();
+            lightRed();
+        }
+        // 下一页的点击事件
+        nextPageClick = function (ev) {
+            ev.stopPropagation();
+            if (nowPage % btnNumber === 0) { // 如果正好是5的倍数, 应该翻页了
+                nowPage = ++nowPage;
+                changeLayout();
+                lightRed("first"); // 最后一个按钮变红
+            } else {
+                nowPage++;
+                lightRed();
+            }
+            checkHomePage();
+            checkLastHome();
+        }
+        // 尾页按钮点击事件
+        lastHomeClick = function (ev) {
+            ev.stopPropagation();
+            nowPage = allPage;
+            changeLayout();
+            lightRed();
+            checkHomePage();
+            checkLastHome();
+        }
+
+
+        // 专门负责按钮变红的
+        function lightRed(whice) {
+            // 点哪个哪个红..
+            var childArr = pageDiv.children;
+            for (var i = 0; i < childArr.length; i++) {
+                childArr[i].style.backgroundColor = "";
+            }
+            if (whice === "last") {
+                // 本组最后一个变红
+                childArr[childArr.length - 1].style.backgroundColor = "red";
+            }
+            if (whice === "first") {
+                childArr[0].style.backgroundColor = "red";
+            } else {
+                for (var j = 0; j < childArr.length; j++) {
+                    if (childArr[j].innerHTML == nowPage) {
+                        childArr[j].style.backgroundColor = "red";
+                    }
+                }
+            }
+        }
+
+        // 改变当前网页布局
+        function changeLayout() {
+            // 1 2 3 4 5    // 1 * 5 - 4
+            // 6 7 8 9 10   // 2 * 5 - 4
+            var nowP = Math.ceil(nowPage / btnNumber);
+            var childArr = pageDiv.children;
+            var first = nowP * btnNumber - (btnNumber - 1);
+            console.log(childArr, btnNumber);
+            for (var i = 0; i < childArr.length; i++) {
+                childArr[i].style.display = "inline-block"; // 所有的都显示出来
+                childArr[i].innerHTML = first + i;
+            }
+
+            // 判断是不是最后一页布局, 动态隐藏DOM
+            if (Math.ceil(allPage / btnNumber) === nowP) { // 12 == 12
+                var h = 0; // 用于遍历元素的下角标
+                for (var j = first; j <= nowP * btnNumber; j++) {
+                    // 判断那个关闭~
+                    if (j <= allPage) {
+                        childArr[h++].style.display = "inline-block";
+                    } else {
+                        childArr[h++].style.display = "none";
+                    }
+                }
+            }
+        }
+
+    }
+
+</script>
+</body>
+</html>
